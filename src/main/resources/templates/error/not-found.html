@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Zapis nije pronađen')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+<div class="container py-4">
+    <div class="alert alert-warning" th:text="${errorMessage}">Zapis nije pronađen.</div>
+    <a class="btn btn-outline-secondary btn-sm" th:href="@{/}">Natrag na početnu</a>
+</div>
+</body>
+</html>

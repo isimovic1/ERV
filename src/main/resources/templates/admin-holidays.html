@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Praznici')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+<div class="container py-4">
+
+    <div th:if="${message}" class="alert alert-success py-2" th:text="${message}"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h2 class="h6 mb-3">Novi praznik</h2>
+                    <form th:action="@{/admin/holidays}" th:object="${holidayForm}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label" for="date">Datum</label>
+                            <input class="form-control" type="date" id="date" th:field="*{date}">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="name">Naziv</label>
+                            <input class="form-control" type="text" id="name" th:field="*{name}">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        </div>
+                        <button class="btn btn-primary w-100" type="submit">Dodaj</button>
+                    </form>
+                </div>
+            </div>
+            <form th:action="@{/admin/holidays/generate}" method="post" class="d-flex gap-2">
+                <input class="form-control" type="number" name="year" th:value="${nextYear}">
+                <button class="btn btn-outline-secondary text-nowrap" type="submit">Generiraj godinu</button>
+            </form>
+        </div>
+
+        <div class="col-lg-8">
+            <table class="table table-sm align-middle">
+                <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Naziv</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="holiday : ${holidays}">
+                    <td th:text="${#temporals.format(holiday.date, 'dd.MM.yyyy.')}">01.01.2026.</td>
+                    <td th:text="${holiday.name}">Nova godina</td>
+                    <td class="text-end">
+                        <form method="post" th:action="@{/admin/holidays/{id}/delete(id=${holiday.id})}">
+                            <button class="btn btn-outline-danger btn-sm" type="submit">Obriši</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${holidays.isEmpty()}">
+                    <td colspan="3" class="text-muted">Nema unesenih praznika.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

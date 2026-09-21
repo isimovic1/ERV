@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Korisnici')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+<div class="container py-4">
+
+    <div th:if="${message}" class="alert alert-success py-2" th:text="${message}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h5 mb-0">Korisnici</h1>
+        <a class="btn btn-primary btn-sm" th:href="@{/admin/users/new}">Novi korisnik</a>
+    </div>
+
+    <table class="table align-middle">
+        <thead>
+        <tr>
+            <th>Ime i prezime</th>
+            <th>E-pošta</th>
+            <th>Uloga</th>
+            <th>Voditelj</th>
+            <th class="text-end">Dana GO</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${users}">
+            <td th:text="${row.fullName}">Marko Horvat</td>
+            <td th:text="${row.email}">marko@workforce.hr</td>
+            <td th:switch="${row.role.name()}">
+                <span th:case="'ADMIN'" class="badge text-bg-dark">Administrator</span>
+                <span th:case="'MANAGER'" class="badge text-bg-primary">Voditelj</span>
+                <span th:case="'EMPLOYEE'" class="badge text-bg-secondary">Zaposlenik</span>
+            </td>
+            <td th:text="${row.managerName} != null ? ${row.managerName} : '—'">—</td>
+            <td class="text-end" th:text="${row.vacationDaysPerYear}">20</td>
+            <td>
+                <span th:if="${row.active}" class="badge text-bg-success">Aktivan</span>
+                <span th:unless="${row.active}" class="badge text-bg-secondary">Neaktivan</span>
+            </td>
+            <td class="text-end text-nowrap">
+                <a class="btn btn-outline-secondary btn-sm"
+                   th:href="@{/admin/users/{id}/edit(id=${row.id})}">Izmijeni</a>
+                <form class="d-inline" method="post" th:action="@{/admin/users/{id}/active(id=${row.id})}">
+                    <input type="hidden" name="active" th:value="${!row.active}">
+                    <button class="btn btn-sm"
+                            th:classappend="${row.active} ? 'btn-outline-danger' : 'btn-outline-success'"
+                            th:text="${row.active} ? 'Deaktiviraj' : 'Aktiviraj'" type="submit">Deaktiviraj</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

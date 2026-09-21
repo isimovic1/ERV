@@ -1,0 +1,67 @@
+services:
+  kafka:
+    image: apache/kafka:4.3.1
+    container_name: workforce-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,INTERNAL://0.0.0.0:19092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CLUSTER_ID: workforce-cluster-0001
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine3.23
+    container_name: workforce-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: workforce
+      POSTGRES_USER: workforce
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-workforce}
+      TZ: Europe/Zagreb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U workforce -d workforce"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: workforce-app
+    profiles: ["full"]
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      TZ: Europe/Zagreb
+      DB_URL: jdbc:postgresql://postgres:5432/workforce
+      DB_USERNAME: workforce
+      DB_PASSWORD: ${DB_PASSWORD:-workforce}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@workforce.hr}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
