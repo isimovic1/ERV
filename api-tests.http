@@ -1,0 +1,193 @@
+# Workforce REST API
+# Lokalna instanca: http://localhost:8080
+# Prijava prvo, token se sprema automatski i koristi u ostalim zahtjevima.
+
+@host = http://localhost:8080
+
+# ============================================================
+# Autentifikacija
+# ============================================================
+
+### Prijava zaposlenika
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "marko@workforce.hr",
+  "password": "Algebra1!"
+}
+
+> {%
+    client.global.set("employeeToken", response.body.token);
+    client.test("Prijava vraca token", function () {
+        client.assert(response.status === 200, "Ocekivan status 200");
+        client.assert(response.body.token !== null, "Token nedostaje");
+    });
+%}
+
+### Prijava voditelja
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "voditelj@workforce.hr",
+  "password": "Algebra1!"
+}
+
+> {%
+    client.global.set("managerToken", response.body.token);
+%}
+
+### Prijava s pogresnom lozinkom vraca 401
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "marko@workforce.hr",
+  "password": "pogresna"
+}
+
+> {%
+    client.test("Neispravna lozinka vraca 401", function () {
+        client.assert(response.status === 401, "Ocekivan status 401");
+    });
+%}
+
+### Zahtjev bez tokena vraca 401
+GET {{host}}/api/work-entries
+
+> {%
+    client.test("Bez tokena nema pristupa", function () {
+        client.assert(response.status === 401, "Ocekivan status 401");
+    });
+%}
+
+### ============================================================
+### Evidencija radnih sati
+### ============================================================
+
+### Mjesecni pregled radnih sati
+GET {{host}}/api/work-entries
+Authorization: Bearer {{employeeToken}}
+
+### Mjesecni pregled za odabrani mjesec
+GET {{host}}/api/work-entries?month=2026-09
+Authorization: Bearer {{employeeToken}}
+
+### Unos radnih sati
+POST {{host}}/api/work-entries
+Content-Type: application/json
+Authorization: Bearer {{employeeToken}}
+
+{
+  "workDate": "2026-09-16",
+  "hours": 8.0,
+  "overtimeHours": 1.5,
+  "description": "Razvoj REST sucelja"
+}
+
+> {%
+    client.test("Unos je prihvacen", function () {
+        client.assert(response.status === 201, "Ocekivan status 201");
+    });
+%}
+
+### Unos s previse sati vraca popis gresaka
+POST {{host}}/api/work-entries
+Content-Type: application/json
+Authorization: Bearer {{employeeToken}}
+
+{
+  "workDate": "2026-09-17",
+  "hours": 20.0
+}
+
+> {%
+    client.test("Validacija vraca 400 i poruke", function () {
+        client.assert(response.status === 400, "Ocekivan status 400");
+        client.assert(response.body.errors.length > 0, "Nedostaje popis gresaka");
+    });
+%}
+
+### ============================================================
+### Godisnji odmor
+### ============================================================
+
+### Stanje godisnjeg odmora
+GET {{host}}/api/leaves/balance
+Authorization: Bearer {{employeeToken}}
+
+### Moji zahtjevi
+GET {{host}}/api/leaves
+Authorization: Bearer {{employeeToken}}
+
+### Podnosenje zahtjeva
+POST {{host}}/api/leaves
+Content-Type: application/json
+Authorization: Bearer {{employeeToken}}
+
+{
+  "type": "ANNUAL_LEAVE",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-14",
+  "note": "Obiteljski odmor"
+}
+
+> {%
+    client.test("Zahtjev je podnesen", function () {
+        client.assert(response.status === 201, "Ocekivan status 201");
+    });
+%}
+
+### Preklapajuci zahtjev je odbijen
+POST {{host}}/api/leaves
+Content-Type: application/json
+Authorization: Bearer {{employeeToken}}
+
+{
+  "startDate": "2027-05-12",
+  "endDate": "2027-05-18"
+}
+
+> {%
+    client.test("Preklapanje vraca 400", function () {
+        client.assert(response.status === 400, "Ocekivan status 400");
+    });
+%}
+
+### ============================================================
+### Bolovanje
+### ============================================================
+
+### Moja bolovanja
+GET {{host}}/api/sick-leaves
+Authorization: Bearer {{employeeToken}}
+
+### Prijava bolovanja
+POST {{host}}/api/sick-leaves
+Content-Type: application/json
+Authorization: Bearer {{employeeToken}}
+
+{
+  "startDate": "2026-09-21",
+  "documentReference": "DZ-2026-441",
+  "description": "Prehlada"
+}
+
+### ============================================================
+### Izvjestaji
+### ============================================================
+
+### Mjesecni izvjestaj tima (voditelj)
+GET {{host}}/api/reports/monthly?month=2026-09
+Authorization: Bearer {{managerToken}}
+
+### Zaposlenik nema pristup izvjestajima
+GET {{host}}/api/reports/monthly
+Authorization: Bearer {{employeeToken}}
+
+> {%
+    client.test("Zaposlenik dobiva 403", function () {
+        client.assert(response.status === 403, "Ocekivan status 403");
+    });
+%}

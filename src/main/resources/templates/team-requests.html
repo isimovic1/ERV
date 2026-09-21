@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Zahtjevi tima')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+<div class="container py-4">
+
+    <div th:if="${message}" class="alert alert-success py-2" th:text="${message}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger py-2" th:text="${errorMessage}"></div>
+
+    <h1 class="h5 mb-3">Zahtjevi na čekanju</h1>
+    <table class="table align-middle">
+        <thead>
+        <tr>
+            <th>Zaposlenik</th>
+            <th>Vrsta</th>
+            <th>Razdoblje</th>
+            <th class="text-end">Radnih dana</th>
+            <th>Napomena</th>
+            <th>Odluka</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${pendingRequests}">
+            <td th:text="${row.employeeName}">Marko Horvat</td>
+            <td th:switch="${row.type.name()}">
+                <span th:case="'PAID_LEAVE'" class="badge text-bg-info">Plaćeni dopust</span>
+                <span th:case="'ANNUAL_LEAVE'" class="badge text-bg-primary">Godišnji</span>
+            </td>
+            <td th:text="${#temporals.format(row.startDate, 'dd.MM.yyyy.')} + ' - ' + ${#temporals.format(row.endDate, 'dd.MM.yyyy.')}">01.09.2026. - 05.09.2026.</td>
+            <td class="text-end" th:text="${row.workingDays}">5</td>
+            <td class="small" th:text="${row.note}"></td>
+            <td>
+                <form class="d-flex gap-2" method="post"
+                      th:action="@{/team/requests/{id}/decision(id=${row.id})}">
+                    <input class="form-control form-control-sm" type="text" name="decisionNote"
+                           placeholder="Obrazloženje">
+                    <button class="btn btn-success btn-sm text-nowrap" type="submit" name="decision"
+                            value="APPROVED">Odobri</button>
+                    <button class="btn btn-outline-danger btn-sm text-nowrap" type="submit" name="decision"
+                            value="REJECTED">Odbij</button>
+                </form>
+            </td>
+        </tr>
+        <tr th:if="${pendingRequests.isEmpty()}">
+            <td colspan="6" class="text-muted">Nema zahtjeva na čekanju.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2 class="h6 mt-4 mb-3">Riješeni zahtjevi</h2>
+    <table class="table table-sm align-middle">
+        <tbody>
+        <tr th:each="row : ${decidedRequests}">
+            <td th:text="${row.employeeName}">Marko Horvat</td>
+            <td th:text="${#temporals.format(row.startDate, 'dd.MM.yyyy.')} + ' - ' + ${#temporals.format(row.endDate, 'dd.MM.yyyy.')}">01.09.2026. - 05.09.2026.</td>
+            <td th:switch="${row.status.name()}">
+                <span th:case="'APPROVED'" class="badge text-bg-success">Odobreno</span>
+                <span th:case="'REJECTED'" class="badge text-bg-danger">Odbijeno</span>
+                <span th:case="'CANCELLED'" class="badge text-bg-secondary">Otkazano</span>
+            </td>
+            <td class="small" th:text="${row.decisionNote}"></td>
+        </tr>
+        <tr th:if="${decidedRequests.isEmpty()}">
+            <td colspan="4" class="text-muted">Nema riješenih zahtjeva.</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

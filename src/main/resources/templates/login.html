@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Prijava')}"></head>
+<body class="bg-body-tertiary">
+<div class="container" style="max-width: 24rem;">
+    <div class="card mt-5">
+        <div class="card-body">
+            <h1 class="h4 mb-3">Prijava</h1>
+            <div th:if="${param.error}" class="alert alert-danger py-2">Neispravna e-pošta ili lozinka.</div>
+            <div th:if="${param.logout}" class="alert alert-success py-2">Odjava uspješna.</div>
+            <form th:action="@{/login}" method="post">
+                <div class="mb-3">
+                    <label class="form-label" for="username">E-pošta</label>
+                    <input class="form-control" type="email" id="username" name="username" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="password">Lozinka</label>
+                    <input class="form-control" type="password" id="password" name="password" required>
+                </div>
+                <button class="btn btn-primary w-100" type="submit">Prijavi se</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

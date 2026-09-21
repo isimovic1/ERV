@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Bolovanja tima')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+<div class="container py-4">
+
+    <div th:if="${message}" class="alert alert-success py-2" th:text="${message}"></div>
+
+    <h1 class="h5 mb-3">Bolovanja tima</h1>
+    <table class="table align-middle">
+        <thead>
+        <tr>
+            <th>Zaposlenik</th>
+            <th>Od</th>
+            <th>Do</th>
+            <th>Status</th>
+            <th>Doznaka</th>
+            <th>Potvrda</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${leaves}">
+            <td th:text="${row.employeeName}">Marko Horvat</td>
+            <td th:text="${#temporals.format(row.startDate, 'dd.MM.yyyy.')}">01.09.2026.</td>
+            <td th:text="${row.endDate} != null ? ${#temporals.format(row.endDate, 'dd.MM.yyyy.')} : '—'">—</td>
+            <td th:switch="${row.status.name()}">
+                <span th:case="'REPORTED'" class="badge text-bg-warning">Prijavljeno</span>
+                <span th:case="'CONFIRMED'" class="badge text-bg-info">Potvrđeno</span>
+                <span th:case="'CLOSED'" class="badge text-bg-secondary">Zatvoreno</span>
+            </td>
+            <td class="small" th:text="${row.documentReference}"></td>
+            <td>
+                <a th:if="${row.hasAttachment}" class="btn btn-outline-secondary btn-sm"
+                   th:href="@{/team/sick-leaves/{id}/attachment(id=${row.id})}">Preuzmi</a>
+                <span th:unless="${row.hasAttachment}" class="text-muted small">—</span>
+            </td>
+            <td class="text-end">
+                <form th:if="${row.status.name() == 'REPORTED'}" method="post"
+                      th:action="@{/team/sick-leaves/{id}/confirm(id=${row.id})}">
+                    <button class="btn btn-outline-primary btn-sm" type="submit">Potvrdi</button>
+                </form>
+            </td>
+        </tr>
+        <tr th:if="${leaves.isEmpty()}">
+            <td colspan="7" class="text-muted">Nema prijavljenih bolovanja u timu.</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

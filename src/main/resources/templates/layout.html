@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title}">Workforce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav th:fragment="navbar" class="navbar navbar-expand-lg bg-dark mb-0" data-bs-theme="dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">Workforce</a>
+        <div class="navbar-nav me-auto">
+            <a class="nav-link" th:href="@{/work-entries}">Radni sati</a>
+            <a class="nav-link" th:href="@{/leaves}">Odsutnosti</a>
+            <a class="nav-link" th:href="@{/sick-leaves}">Bolovanje</a>
+            <a class="nav-link" th:href="@{/team/requests}" sec:authorize="hasAnyRole('MANAGER','ADMIN')">Zahtjevi tima</a>
+            <a class="nav-link" th:href="@{/team/sick-leaves}" sec:authorize="hasAnyRole('MANAGER','ADMIN')">Bolovanja tima</a>
+            <a class="nav-link" th:href="@{/team/calendar}" sec:authorize="hasAnyRole('MANAGER','ADMIN')">Kalendar</a>
+            <a class="nav-link" th:href="@{/reports}" sec:authorize="hasAnyRole('MANAGER','ADMIN')">Izvještaji</a>
+            <a class="nav-link" th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')">Korisnici</a>
+            <a class="nav-link" th:href="@{/admin/holidays}" sec:authorize="hasRole('ADMIN')">Praznici</a>
+            <a class="nav-link" th:href="@{/admin/events}" sec:authorize="hasRole('ADMIN')">Obavijesti</a>
+        </div>
+        <a class="nav-link text-light me-3" th:href="@{/profile}">Moj profil</a>
+        <form th:action="@{/logout}" method="post" class="d-flex">
+            <button class="btn btn-outline-light btn-sm" type="submit">Odjava</button>
+        </form>
+    </div>
+</nav>
+</body>
+</html>

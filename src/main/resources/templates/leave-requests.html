@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Odsutnosti')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+<div class="container py-4">
+
+    <div th:if="${message}" class="alert alert-success py-2" th:text="${message}"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h2 class="h6" th:text="'Saldo za ' + ${balance.year} + '.'">Saldo</h2>
+
+                    <div class="small text-muted mt-3 mb-1">Godišnji odmor</div>
+                    <dl class="row mb-2 small">
+                        <dt class="col-7">Pripada</dt>
+                        <dd class="col-5 text-end" th:text="${balance.annualEntitledDays}">20</dd>
+                        <dt class="col-7">Iskorišteno</dt>
+                        <dd class="col-5 text-end" th:text="${balance.annualUsedDays}">0</dd>
+                        <dt class="col-7">U odobravanju</dt>
+                        <dd class="col-5 text-end" th:text="${balance.annualReservedDays}">0</dd>
+                        <dt class="col-7 fw-semibold">Preostalo</dt>
+                        <dd class="col-5 text-end fw-semibold" th:text="${balance.annualRemainingDays}">20</dd>
+                    </dl>
+
+                    <div class="small text-muted mt-3 mb-1">Plaćeni dopust</div>
+                    <dl class="row mb-0 small">
+                        <dt class="col-7">Pripada</dt>
+                        <dd class="col-5 text-end" th:text="${balance.paidEntitledDays}">7</dd>
+                        <dt class="col-7">Iskorišteno</dt>
+                        <dd class="col-5 text-end" th:text="${balance.paidUsedDays}">0</dd>
+                        <dt class="col-7">U odobravanju</dt>
+                        <dd class="col-5 text-end" th:text="${balance.paidReservedDays}">0</dd>
+                        <dt class="col-7 fw-semibold">Preostalo</dt>
+                        <dd class="col-5 text-end fw-semibold" th:text="${balance.paidRemainingDays}">7</dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h6 mb-3">Novi zahtjev</h2>
+                    <form th:action="@{/leaves}" th:object="${leaveRequestForm}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label" for="type">Vrsta</label>
+                            <select class="form-select" id="type" th:field="*{type}">
+                                <option th:each="option : ${leaveTypes}" th:value="${option}"
+                                        th:text="${option.name() == 'PAID_LEAVE'} ? 'Plaćeni dopust' : 'Godišnji odmor'">
+                                    Godišnji odmor
+                                </option>
+                            </select>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('type')}"
+                                 th:errors="*{type}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="startDate">Od</label>
+                            <input class="form-control" type="date" id="startDate" th:field="*{startDate}">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('startDate')}"
+                                 th:errors="*{startDate}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="endDate">Do</label>
+                            <input class="form-control" type="date" id="endDate" th:field="*{endDate}">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('endDate')}"
+                                 th:errors="*{endDate}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="note">Napomena</label>
+                            <textarea class="form-control" rows="2" id="note" th:field="*{note}"></textarea>
+                            <div class="text-danger small" th:if="${#fields.hasErrors('note')}"
+                                 th:errors="*{note}"></div>
+                        </div>
+                        <button class="btn btn-primary w-100" type="submit">Podnesi</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <table class="table table-sm align-middle">
+                <thead>
+                <tr>
+                    <th>Vrsta</th>
+                    <th>Razdoblje</th>
+                    <th class="text-end">Radnih dana</th>
+                    <th>Status</th>
+                    <th>Obrazloženje</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${requests}">
+                    <td th:switch="${row.type.name()}">
+                        <span th:case="'PAID_LEAVE'" class="badge text-bg-info">Plaćeni dopust</span>
+                        <span th:case="'ANNUAL_LEAVE'" class="badge text-bg-primary">Godišnji</span>
+                    </td>
+                    <td th:text="${#temporals.format(row.startDate, 'dd.MM.yyyy.')} + ' - ' + ${#temporals.format(row.endDate, 'dd.MM.yyyy.')}">01.09.2026. - 05.09.2026.</td>
+                    <td class="text-end" th:text="${row.workingDays}">5</td>
+                    <td th:switch="${row.status.name()}">
+                        <span th:case="'PENDING'" class="badge text-bg-warning">U odobravanju</span>
+                        <span th:case="'APPROVED'" class="badge text-bg-success">Odobreno</span>
+                        <span th:case="'REJECTED'" class="badge text-bg-danger">Odbijeno</span>
+                        <span th:case="'CANCELLED'" class="badge text-bg-secondary">Otkazano</span>
+                    </td>
+                    <td class="small" th:text="${row.decisionNote}"></td>
+                    <td class="text-end">
+                        <form th:if="${row.status.name() == 'PENDING'}" method="post"
+                              th:action="@{/leaves/{id}/cancel(id=${row.id})}">
+                            <button class="btn btn-outline-danger btn-sm" type="submit">Otkaži</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${requests.isEmpty()}">
+                    <td colspan="6" class="text-muted">Nema podnesenih zahtjeva.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

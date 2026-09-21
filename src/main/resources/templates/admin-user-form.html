@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Korisnik')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+<div class="container py-4" style="max-width: 40rem;">
+
+    <h1 class="h5 mb-3" th:text="${userForm.id} != null ? 'Izmjena korisnika' : 'Novi korisnik'">Novi korisnik</h1>
+
+    <form th:action="@{/admin/users}" th:object="${userForm}" method="post">
+        <input type="hidden" th:field="*{id}">
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="firstName">Ime</label>
+                <input class="form-control" type="text" id="firstName" th:field="*{firstName}">
+                <div class="text-danger small" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="lastName">Prezime</label>
+                <input class="form-control" type="text" id="lastName" th:field="*{lastName}">
+                <div class="text-danger small" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="email">E-pošta</label>
+            <input class="form-control" type="email" id="email" th:field="*{email}">
+            <div class="text-danger small" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="role">Uloga</label>
+                <select class="form-select" id="role" th:field="*{role}">
+                    <option th:each="option : ${roles}" th:value="${option}"
+                            th:text="${option.name() == 'ADMIN'} ? 'Administrator'
+                                     : (${option.name() == 'MANAGER'} ? 'Voditelj' : 'Zaposlenik')">Zaposlenik</option>
+                </select>
+                <div class="text-danger small" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="managerId">Voditelj</label>
+                <select class="form-select" id="managerId" th:field="*{managerId}">
+                    <option value="">Bez voditelja</option>
+                    <option th:each="manager : ${managers}" th:value="${manager.id}"
+                            th:text="${manager.fullName}">Petra Kovač</option>
+                </select>
+                <div class="text-danger small" th:if="${#fields.hasErrors('managerId')}" th:errors="*{managerId}"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="hireDate">Datum zaposlenja</label>
+                <input class="form-control" type="date" id="hireDate" th:field="*{hireDate}">
+                <div class="text-danger small" th:if="${#fields.hasErrors('hireDate')}" th:errors="*{hireDate}"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="vacationDaysPerYear">Dana godišnjeg odmora</label>
+                <input class="form-control" type="number" id="vacationDaysPerYear" th:field="*{vacationDaysPerYear}">
+                <div class="text-danger small" th:if="${#fields.hasErrors('vacationDaysPerYear')}"
+                     th:errors="*{vacationDaysPerYear}"></div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="password">Lozinka</label>
+            <input class="form-control" type="password" id="password" th:field="*{password}" autocomplete="new-password">
+            <div class="form-text" th:if="${userForm.id} != null">Ostavite prazno da se lozinka ne mijenja.</div>
+            <div class="text-danger small" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+        </div>
+
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="active" th:field="*{active}">
+            <label class="form-check-label" for="active">Aktivan</label>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Spremi</button>
+        <a class="btn btn-outline-secondary" th:href="@{/admin/users}">Odustani</a>
+    </form>
+</div>
+</body>
+</html>

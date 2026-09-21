@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Izvještaji')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+<div class="container py-4">
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <a class="btn btn-outline-secondary btn-sm" th:href="@{/reports(month=${previousMonth})}">&laquo;</a>
+            <h1 class="h5 mb-0" th:text="${month}">2026-09</h1>
+            <a class="btn btn-outline-secondary btn-sm" th:href="@{/reports(month=${nextMonth})}">&raquo;</a>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-success btn-sm" th:href="@{/reports/excel(month=${month})}">Excel</a>
+            <a class="btn btn-outline-danger btn-sm" th:href="@{/reports/pdf(month=${month})}">PDF</a>
+        </div>
+    </div>
+
+    <div class="card mb-4" th:if="${!report.rows.isEmpty()}">
+        <div class="card-body">
+            <canvas id="hoursChart" height="90"></canvas>
+        </div>
+    </div>
+
+    <table class="table align-middle">
+        <thead>
+        <tr>
+            <th>Zaposlenik</th>
+            <th class="text-end">Radnih dana</th>
+            <th class="text-end">Sati</th>
+            <th class="text-end">Prekovremeni</th>
+            <th class="text-end">Dana godišnjeg</th>
+            <th class="text-end">Dana bolovanja</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${report.rows}">
+            <td th:text="${row.employeeName}">Marko Horvat</td>
+            <td class="text-end" th:text="${row.workedDays}">20</td>
+            <td class="text-end" th:text="${row.workedHours}">160</td>
+            <td class="text-end" th:text="${row.overtimeHours}">4</td>
+            <td class="text-end" th:text="${row.vacationDays}">0</td>
+            <td class="text-end" th:text="${row.sickDays}">0</td>
+        </tr>
+        <tr th:if="${report.rows.isEmpty()}">
+            <td colspan="6" class="text-muted">Nema zaposlenika za prikaz.</td>
+        </tr>
+        </tbody>
+        <tfoot th:if="${!report.rows.isEmpty()}">
+        <tr class="fw-semibold">
+            <td>Ukupno</td>
+            <td></td>
+            <td class="text-end" th:text="${report.totalHours}">0</td>
+            <td class="text-end" th:text="${report.totalOvertimeHours}">0</td>
+            <td class="text-end" th:text="${report.totalVacationDays}">0</td>
+            <td class="text-end" th:text="${report.totalSickDays}">0</td>
+        </tr>
+        </tfoot>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const labels = /*[[${report.rows.![employeeName]}]]*/ [];
+    const hours = /*[[${report.rows.![workedHours]}]]*/ [];
+    const overtime = /*[[${report.rows.![overtimeHours]}]]*/ [];
+    const canvas = document.getElementById('hoursChart');
+    if (canvas) {
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {label: 'Sati', data: hours, backgroundColor: '#0d6efd'},
+                    {label: 'Prekovremeni', data: overtime, backgroundColor: '#fd7e14'}
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {y: {beginAtZero: true}}
+            }
+        });
+    }
+</script>
+</body>
+</html>
