@@ -58,7 +58,9 @@ class NotificationFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(logs.getFirst().getType()).isEqualTo(NotificationType.VACATION_REQUESTED);
         assertThat(logs.getFirst().getRecipientEmail()).isEqualTo("voditelj@test.hr");
         assertThat(logs.getFirst().isDelivered()).isTrue();
-        assertThat(logs.getFirst().getMessage()).contains("radnih dana");
+        assertThat(logs.getFirst().getMessage())
+                .contains("godišnji odmor")
+                .containsPattern("[0-9]+ radn(i dan|a dana|ih dana)");
     }
 
     @Test

@@ -42,6 +42,17 @@ services:
       timeout: 5s
       retries: 5
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: workforce-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      TZ: Europe/Zagreb
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
   app:
     build: .
     container_name: workforce-app
@@ -55,6 +66,13 @@ services:
       DB_USERNAME: workforce
       DB_PASSWORD: ${DB_PASSWORD:-workforce}
       KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      SPRING_MAIL_HOST: ${MAIL_HOST:-}
+      SPRING_MAIL_PORT: ${MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${MAIL_AUTH:-true}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_STARTTLS:-true}
+      APP_NOTIFICATION_SENDER: ${MAIL_FROM:-workforce@algebra.hr}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@workforce.hr}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     depends_on:

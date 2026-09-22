@@ -117,7 +117,8 @@ public class LeaveService {
                 request.getUser().getId(), request.getUser().getFullName(), manager.getEmail(),
                 "Novi zahtjev za " + label,
                 request.getUser().getFullName() + " traži " + label + " od " + request.getStartDate()
-                        + " do " + request.getEndDate() + " (" + request.getWorkingDays() + " radnih dana)."));
+                        + " do " + request.getEndDate()
+                        + " (" + CroatianPlural.workingDays(request.getWorkingDays()) + ")."));
     }
 
     private int countDays(Long userId, int year, LeaveType type, RequestStatus status) {
