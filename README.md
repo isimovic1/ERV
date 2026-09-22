@@ -90,6 +90,25 @@ docker compose up -d kafka postgres
 | `JWT_SECRET` | ključ za potpisivanje tokena, najmanje 32 znaka |
 | `SPRING_MAIL_HOST` i ostale `spring.mail.*` | SMTP poslužitelj; bez njega se obavijesti zapisuju u dnevnik |
 
+## Slanje obavijesti e-poštom
+
+Bez postavljenog poslužitelja obavijesti se zapisuju u dnevnik. Slanje se uključuje postavljanjem
+varijable `SPRING_MAIL_HOST` (ili `MAIL_HOST` u `.env` pri pokretanju kroz Docker).
+
+Za lokalnu probu bez pravog poslužitelja koristi se Mailpit, koji hvata poruke i prikazuje ih na
+`http://localhost:8025`:
+
+```bash
+docker compose up -d mailpit
+```
+
+```bash
+SPRING_MAIL_HOST=localhost SPRING_MAIL_PORT=1025 SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=false SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=false ./mvnw spring-boot:run
+```
+
+Za stvarno slanje postavlja se poslužitelj, korisničko ime i lozinka u `.env`. Adresa primatelja
+uzima se iz korisničkog računa u aplikaciji, pa se mijenja kroz sučelje `/admin/users`.
+
 ## Struktura projekta
 
 ```
