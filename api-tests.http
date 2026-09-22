@@ -13,8 +13,8 @@ POST {{host}}/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "marko@workforce.hr",
-  "password": "Algebra1!"
+  "email": "marko@erv.hr",
+  "password": "password"
 }
 
 > {%
@@ -30,8 +30,8 @@ POST {{host}}/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "voditelj@workforce.hr",
-  "password": "Algebra1!"
+  "email": "voditelj@erv.hr",
+  "password": "password"
 }
 
 > {%
@@ -43,7 +43,7 @@ POST {{host}}/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "marko@workforce.hr",
+  "email": "marko@erv.hr",
   "password": "pogresna"
 }
 
