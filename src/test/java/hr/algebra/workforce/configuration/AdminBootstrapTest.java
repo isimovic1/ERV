@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestPropertySource(properties = {
-        "app.bootstrap.admin-email=sef@workforce.hr",
+        "app.bootstrap.admin-email=sef@erv.hr",
         "app.bootstrap.admin-password=PocetnaLozinka1!"
 })
 class AdminBootstrapTest extends AbstractIntegrationTest {
@@ -29,7 +29,7 @@ class AdminBootstrapTest extends AbstractIntegrationTest {
     void administratorIsCreatedOnEmptyDatabase() {
         adminBootstrap.run();
 
-        User admin = userRepository.findByEmailIgnoreCase("sef@workforce.hr").orElseThrow();
+        User admin = userRepository.findByEmailIgnoreCase("sef@erv.hr").orElseThrow();
         assertThat(admin.getRole()).isEqualTo(Role.ADMIN);
         assertThat(admin.isActive()).isTrue();
         assertThat(passwordEncoder.matches("PocetnaLozinka1!", admin.getPassword())).isTrue();
@@ -40,7 +40,7 @@ class AdminBootstrapTest extends AbstractIntegrationTest {
         User existing = new User();
         existing.setFirstName("Postojeci");
         existing.setLastName("Korisnik");
-        existing.setEmail("postojeci@workforce.hr");
+        existing.setEmail("postojeci@erv.hr");
         existing.setPassword(passwordEncoder.encode("Algebra1!"));
         existing.setRole(Role.EMPLOYEE);
         existing.setHireDate(LocalDate.of(2025, 1, 1));
@@ -49,7 +49,7 @@ class AdminBootstrapTest extends AbstractIntegrationTest {
         adminBootstrap.run();
 
         assertThat(userRepository.count()).isEqualTo(1);
-        assertThat(userRepository.findByEmailIgnoreCase("sef@workforce.hr")).isEmpty();
+        assertThat(userRepository.findByEmailIgnoreCase("sef@erv.hr")).isEmpty();
     }
 
     @Test

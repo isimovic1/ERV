@@ -72,8 +72,8 @@ services:
       SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${MAIL_AUTH:-true}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_STARTTLS:-true}
-      APP_NOTIFICATION_SENDER: ${MAIL_FROM:-workforce@algebra.hr}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@workforce.hr}
+      APP_NOTIFICATION_SENDER: ${MAIL_FROM:-evidencija@erv.hr}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@erv.hr}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     depends_on:
       postgres:

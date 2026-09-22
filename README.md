@@ -1,4 +1,4 @@
-# Workforce — evidencija radnog vremena i administracija zaposlenika
+# Employee Administration — evidencija radnog vremena i administracija zaposlenika
 
 Web aplikacija izrađena kao praktični dio završnog rada *Razvoj programskog rješenja za administraciju
 zaposlenika i evidenciju radnog vremena* (Sveučilište Algebra, stručni prijediplomski studij
@@ -53,13 +53,13 @@ Aplikacija se podiže na `http://localhost:8080` s profilom `dev`: baza je H2 u 
 (`./data/workforce`), H2 konzola je na `/h2-console`, a pri prvom pokretanju kreiraju se probni
 korisnici i praznici za tekuću i sljedeću godinu.
 
-Probni računi (lozinka je vrijednost `SEED_PASSWORD`, prema zadanome `Algebra1!`):
+Probni računi (lozinka je vrijednost `SEED_PASSWORD`, prema zadanome `password`):
 
 | E-pošta | Uloga |
 |---|---|
-| `admin@workforce.hr` | administrator |
-| `voditelj@workforce.hr` | voditelj |
-| `marko@workforce.hr`, `ana@workforce.hr` | zaposlenici |
+| `admin@erv.hr` | administrator |
+| `voditelj@erv.hr` | voditelj |
+| `marko@erv.hr`, `ana@erv.hr` | zaposlenici |
 
 Kafka u razvoju nije obavezna — ako broker nije dostupan, aplikacija radi normalno, a neobjavljena
 obavijest se zapisuje kao upozorenje u dnevnik.

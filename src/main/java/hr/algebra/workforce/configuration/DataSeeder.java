@@ -30,10 +30,10 @@ public class DataSeeder implements CommandLineRunner {
         if (userRepository.count() > 0) {
             return;
         }
-        User admin = createUser("Ivan", "Šimović", "admin@workforce.hr", Role.ADMIN, null);
-        User manager = createUser("Petra", "Kovač", "voditelj@workforce.hr", Role.MANAGER, admin);
-        createUser("Marko", "Horvat", "marko@workforce.hr", Role.EMPLOYEE, manager);
-        createUser("Ana", "Babić", "ana@workforce.hr", Role.EMPLOYEE, manager);
+        User admin = createUser("Ivan", "Šimović", "admin@erv.hr", Role.ADMIN, null);
+        User manager = createUser("Petra", "Kovač", "voditelj@erv.hr", Role.MANAGER, admin);
+        createUser("Marko", "Horvat", "marko@erv.hr", Role.EMPLOYEE, manager);
+        createUser("Ana", "Babić", "ana@erv.hr", Role.EMPLOYEE, manager);
         log.info("Početni korisnici kreirani");
     }
 

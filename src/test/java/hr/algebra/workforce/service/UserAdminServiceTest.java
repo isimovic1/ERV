@@ -41,10 +41,10 @@ class UserAdminServiceTest extends AbstractIntegrationTest {
 
     @Test
     void savedUserGetsHashedPasswordAndNormalisedEmail() {
-        userAdminService.save(form("  Ivo ", "Ivić", "  IVO@Workforce.HR ", Role.EMPLOYEE, managerId, "Algebra1!"));
+        userAdminService.save(form("  Ivo ", "Ivić", "  IVO@Erv.HR ", Role.EMPLOYEE, managerId, "Algebra1!"));
 
-        User stored = userRepository.findByEmailIgnoreCase("ivo@workforce.hr").orElseThrow();
-        assertThat(stored.getEmail()).isEqualTo("ivo@workforce.hr");
+        User stored = userRepository.findByEmailIgnoreCase("ivo@erv.hr").orElseThrow();
+        assertThat(stored.getEmail()).isEqualTo("ivo@erv.hr");
         assertThat(stored.getFirstName()).isEqualTo("Ivo");
         assertThat(stored.getLastName()).isEqualTo("Ivić");
         assertThat(stored.getPassword()).isNotEqualTo("Algebra1!");
