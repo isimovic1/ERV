@@ -68,7 +68,7 @@ class NotificationFlowIntegrationTest extends AbstractIntegrationTest {
         submitVacation();
         awaitLogs(1);
 
-        leaveApprovalService.decide(managerId, leaveService.myRequests(employeeId).getFirst().id(),
+        leaveApprovalService.decide(managerId, Role.MANAGER, leaveService.myRequests(employeeId).getFirst().id(),
                 RequestStatus.APPROVED, "U redu");
 
         List<NotificationLog> logs = awaitLogs(2);

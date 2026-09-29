@@ -27,8 +27,10 @@ public class TeamLeaveController {
 
     @GetMapping
     public String list(@AuthenticationPrincipal AppUserDetails principal, Model model) {
-        model.addAttribute("pendingRequests", leaveApprovalService.pendingForManager(principal.getId()));
-        model.addAttribute("decidedRequests", leaveApprovalService.historyForManager(principal.getId()));
+        model.addAttribute("pendingRequests",
+                leaveApprovalService.pendingForManager(principal.getId(), principal.getRole()));
+        model.addAttribute("decidedRequests",
+                leaveApprovalService.historyForManager(principal.getId(), principal.getRole()));
         model.addAttribute("decisionForm", new VacationDecisionForm());
         return "team-requests";
     }
@@ -44,7 +46,8 @@ public class TeamLeaveController {
             redirectAttributes.addFlashAttribute("errorMessage", "Obrazloženje je predugačko.");
             return "redirect:/team/requests";
         }
-        leaveApprovalService.decide(principal.getId(), id, decision, decisionForm.getDecisionNote());
+        leaveApprovalService.decide(principal.getId(), principal.getRole(), id, decision,
+                decisionForm.getDecisionNote());
         redirectAttributes.addFlashAttribute("message",
                 decision == RequestStatus.APPROVED ? "Zahtjev je odobren." : "Zahtjev je odbijen.");
         return "redirect:/team/requests";

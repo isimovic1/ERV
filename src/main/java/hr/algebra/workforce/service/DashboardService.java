@@ -53,6 +53,6 @@ public class DashboardService {
         if (role == Role.EMPLOYEE) {
             return 0;
         }
-        return leaveApprovalService.pendingForManager(userId).size();
+        return leaveApprovalService.pendingForManager(userId, role).size();
     }
 }

@@ -8,6 +8,7 @@ import hr.algebra.workforce.event.NotificationType;
 import hr.algebra.workforce.form.LeaveRequestForm;
 import hr.algebra.workforce.model.LeaveType;
 import hr.algebra.workforce.model.RequestStatus;
+import hr.algebra.workforce.model.Role;
 import hr.algebra.workforce.model.User;
 import hr.algebra.workforce.model.LeaveRequest;
 import hr.algebra.workforce.repository.UserRepository;
@@ -65,6 +66,16 @@ public class LeaveService {
 
     public int remainingDaysFor(LeaveBalance balance, LeaveType type) {
         return type == LeaveType.PAID_LEAVE ? balance.paidRemainingDays() : balance.annualRemainingDays();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasApprover(Long userId) {
+        User user = requireUser(userId);
+        if (user.getManager() != null) {
+            return true;
+        }
+        return userRepository.findByRoleOrderByLastNameAsc(Role.ADMIN).stream()
+                .anyMatch(admin -> admin.isActive() && !admin.getId().equals(userId));
     }
 
     @Transactional(readOnly = true)
