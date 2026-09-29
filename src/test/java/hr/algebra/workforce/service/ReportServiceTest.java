@@ -80,7 +80,7 @@ class ReportServiceTest extends AbstractIntegrationTest {
         form.setStartDate(LocalDate.of(2026, 9, 28));
         form.setEndDate(LocalDate.of(2026, 10, 2));
         leaveService.submit(employeeId, form);
-        leaveApprovalService.decide(managerId, leaveService.myRequests(employeeId).getFirst().id(),
+        leaveApprovalService.decide(managerId, Role.MANAGER, leaveService.myRequests(employeeId).getFirst().id(),
                 RequestStatus.APPROVED, null);
 
         assertThat(reportService.monthlyReport(managerId, Role.MANAGER, MONTH).rows().getFirst().vacationDays())

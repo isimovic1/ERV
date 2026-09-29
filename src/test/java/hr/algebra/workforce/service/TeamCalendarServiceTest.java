@@ -89,7 +89,7 @@ class TeamCalendarServiceTest extends AbstractIntegrationTest {
         assertThat(kindOn(pending, LocalDate.of(2026, 11, 3))).isEqualTo(AbsenceKind.ANNUAL_LEAVE_PENDING);
         assertThat(pending.absentDays()).isEqualTo(3);
 
-        leaveApprovalService.decide(managerId, leaveService.myRequests(employeeId).getFirst().id(),
+        leaveApprovalService.decide(managerId, Role.MANAGER, leaveService.myRequests(employeeId).getFirst().id(),
                 RequestStatus.APPROVED, null);
 
         TeamCalendarRow approved = teamCalendarService.monthlyCalendar(managerId, Role.MANAGER, MONTH)

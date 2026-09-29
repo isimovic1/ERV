@@ -22,6 +22,11 @@ public class LeaveRequestFormValidator {
         if (start == null || end == null) {
             return;
         }
+        if (!leaveService.hasApprover(userId)) {
+            errors.rejectValue("startDate", "noApprover",
+                    "Nemate nadređenog koji bi odlučio o zahtjevu. Obratite se administratoru.");
+            return;
+        }
         if (end.isBefore(start)) {
             errors.rejectValue("endDate", "range", "Datum završetka mora biti nakon datuma početka.");
             return;

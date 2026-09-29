@@ -11,6 +11,8 @@ import hr.algebra.workforce.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
 
 import java.time.LocalDate;
 
@@ -24,6 +26,9 @@ class LeaveServiceTest extends AbstractIntegrationTest {
 
     @Autowired
     private LeaveApprovalService leaveApprovalService;
+
+    @Autowired
+    private hr.algebra.workforce.validation.LeaveRequestFormValidator validator;
 
 
 
@@ -60,7 +65,7 @@ class LeaveServiceTest extends AbstractIntegrationTest {
         assertThat(reserved.annualUsedDays()).isZero();
         assertThat(reserved.annualRemainingDays()).isEqualTo(15);
 
-        leaveApprovalService.decide(managerId, firstRequestId(), RequestStatus.APPROVED, "U redu");
+        leaveApprovalService.decide(managerId, Role.MANAGER, firstRequestId(), RequestStatus.APPROVED, "U redu");
 
         LeaveBalance approved = leaveService.balance(employeeId, 2026);
         assertThat(approved.annualUsedDays()).isEqualTo(5);
@@ -71,7 +76,7 @@ class LeaveServiceTest extends AbstractIntegrationTest {
     @Test
     void rejectedRequestReturnsDaysToBalance() {
         submit(LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 9));
-        leaveApprovalService.decide(managerId, firstRequestId(), RequestStatus.REJECTED, "Nije moguće");
+        leaveApprovalService.decide(managerId, Role.MANAGER, firstRequestId(), RequestStatus.REJECTED, "Nije moguće");
 
         LeaveBalance balance = leaveService.balance(employeeId, 2026);
         assertThat(balance.annualRemainingDays()).isEqualTo(20);
@@ -101,7 +106,7 @@ class LeaveServiceTest extends AbstractIntegrationTest {
         assertThatThrownBy(() -> leaveService.cancel(managerId, requestId))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        leaveApprovalService.decide(managerId, requestId, RequestStatus.APPROVED, null);
+        leaveApprovalService.decide(managerId, Role.MANAGER, requestId, RequestStatus.APPROVED, null);
         assertThatThrownBy(() -> leaveService.cancel(employeeId, requestId))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
@@ -111,19 +116,19 @@ class LeaveServiceTest extends AbstractIntegrationTest {
         submit(LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 9));
         Long requestId = firstRequestId();
 
-        assertThatThrownBy(() -> leaveApprovalService.decide(unrelatedManagerId, requestId,
+        assertThatThrownBy(() -> leaveApprovalService.decide(unrelatedManagerId, Role.MANAGER, requestId,
                 RequestStatus.APPROVED, null)).isInstanceOf(ResourceNotFoundException.class);
-        assertThat(leaveApprovalService.pendingForManager(unrelatedManagerId)).isEmpty();
-        assertThat(leaveApprovalService.pendingForManager(managerId)).hasSize(1);
+        assertThat(leaveApprovalService.pendingForManager(unrelatedManagerId, Role.MANAGER)).isEmpty();
+        assertThat(leaveApprovalService.pendingForManager(managerId, Role.MANAGER)).hasSize(1);
     }
 
     @Test
     void decidedRequestCannotBeDecidedAgain() {
         submit(LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 9));
         Long requestId = firstRequestId();
-        leaveApprovalService.decide(managerId, requestId, RequestStatus.APPROVED, null);
+        leaveApprovalService.decide(managerId, Role.MANAGER, requestId, RequestStatus.APPROVED, null);
 
-        assertThatThrownBy(() -> leaveApprovalService.decide(managerId, requestId,
+        assertThatThrownBy(() -> leaveApprovalService.decide(managerId, Role.MANAGER, requestId,
                 RequestStatus.REJECTED, null)).isInstanceOf(ResourceNotFoundException.class);
     }
 
@@ -142,7 +147,7 @@ class LeaveServiceTest extends AbstractIntegrationTest {
     @Test
     void approvedPaidLeaveDoesNotReduceAnnualBalance() {
         submitPaidLeave(LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 7));
-        leaveApprovalService.decide(managerId, firstRequestId(), RequestStatus.APPROVED, null);
+        leaveApprovalService.decide(managerId, Role.MANAGER, firstRequestId(), RequestStatus.APPROVED, null);
 
         LeaveBalance balance = leaveService.balance(employeeId, 2026);
         assertThat(balance.paidUsedDays()).isEqualTo(3);
@@ -156,6 +161,58 @@ class LeaveServiceTest extends AbstractIntegrationTest {
         form.setStartDate(start);
         form.setEndDate(end);
         leaveService.submit(employeeId, form);
+    }
+
+
+    @Test
+    void administratorMayDecideOnAnyRequestButNotOwn() {
+        Long adminId = createUser("admin@test.hr", Role.ADMIN, null).getId();
+        submit(LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 9));
+        Long requestId = firstRequestId();
+
+        assertThat(leaveApprovalService.pendingForManager(adminId, Role.ADMIN)).hasSize(1);
+        leaveApprovalService.decide(adminId, Role.ADMIN, requestId, RequestStatus.APPROVED, "odobreno");
+        assertThat(leaveService.myRequests(employeeId).getFirst().status())
+                .isEqualTo(RequestStatus.APPROVED);
+    }
+
+    @Test
+    void ownRequestIsNeverVisibleForOwnDecision() {
+        Long adminId = createUser("admin@test.hr", Role.ADMIN, null).getId();
+        LeaveRequestForm form = new LeaveRequestForm();
+        form.setStartDate(LocalDate.of(2026, 10, 5));
+        form.setEndDate(LocalDate.of(2026, 10, 6));
+        leaveService.submit(adminId, form);
+        Long requestId = leaveService.myRequests(adminId).getFirst().id();
+
+        assertThat(leaveApprovalService.pendingForManager(adminId, Role.ADMIN)).isEmpty();
+        assertThatThrownBy(() -> leaveApprovalService.decide(adminId, Role.ADMIN, requestId,
+                RequestStatus.APPROVED, null)).isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void requestIsAllowedOnlyWhenSomebodyCanDecideOnIt() {
+        Long bezNadredenogId = createUser("samotnjak@test.hr", Role.MANAGER, null).getId();
+        assertThat(leaveService.hasApprover(bezNadredenogId)).isFalse();
+
+        Long adminId = createUser("admin@test.hr", Role.ADMIN, null).getId();
+        assertThat(leaveService.hasApprover(bezNadredenogId)).isTrue();
+        assertThat(leaveService.hasApprover(adminId)).isFalse();
+        assertThat(leaveService.hasApprover(employeeId)).isTrue();
+    }
+
+    @Test
+    void submittingWithoutApproverIsRejectedByValidator() {
+        Long bezNadredenogId = createUser("bez.nadredenog@test.hr", Role.ADMIN, null).getId();
+        LeaveRequestForm form = new LeaveRequestForm();
+        form.setStartDate(LocalDate.of(2026, 10, 5));
+        form.setEndDate(LocalDate.of(2026, 10, 6));
+        Errors errors = new BeanPropertyBindingResult(form, "leaveRequestForm");
+
+        validator.validate(form, errors, bezNadredenogId);
+
+        assertThat(errors.getFieldError("startDate")).isNotNull();
+        assertThat(errors.getFieldError("startDate").getDefaultMessage()).contains("nadređenog");
     }
 
     private void submit(LocalDate start, LocalDate end) {

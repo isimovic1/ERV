@@ -32,5 +32,11 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     List<LeaveRequest> findByUserManagerIdAndStatusOrderBySubmittedAtAsc(Long managerId, RequestStatus status);
 
     @EntityGraph(attributePaths = "user")
+    List<LeaveRequest> findByStatusOrderBySubmittedAtAsc(RequestStatus status);
+
+    @EntityGraph(attributePaths = "user")
+    List<LeaveRequest> findByStatusNotOrderBySubmittedAtDesc(RequestStatus status);
+
+    @EntityGraph(attributePaths = "user")
     List<LeaveRequest> findByUserManagerIdOrderBySubmittedAtDesc(Long managerId);
 }

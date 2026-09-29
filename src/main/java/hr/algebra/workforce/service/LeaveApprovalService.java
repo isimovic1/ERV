@@ -5,6 +5,7 @@ import hr.algebra.workforce.event.NotificationEvent;
 import hr.algebra.workforce.event.NotificationType;
 import hr.algebra.workforce.exception.ResourceNotFoundException;
 import hr.algebra.workforce.model.RequestStatus;
+import hr.algebra.workforce.model.Role;
 import hr.algebra.workforce.model.User;
 import hr.algebra.workforce.model.LeaveRequest;
 import hr.algebra.workforce.repository.UserRepository;
@@ -28,30 +29,38 @@ public class LeaveApprovalService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
-    public List<LeaveRequestRow> pendingForManager(Long managerId) {
-        return leaveRequestRepository
-                .findByUserManagerIdAndStatusOrderBySubmittedAtAsc(managerId, RequestStatus.PENDING)
-                .stream()
+    public List<LeaveRequestRow> pendingForManager(Long viewerId, Role viewerRole) {
+        List<LeaveRequest> zahtjevi = viewerRole == Role.ADMIN
+                ? leaveRequestRepository.findByStatusOrderBySubmittedAtAsc(RequestStatus.PENDING)
+                : leaveRequestRepository.findByUserManagerIdAndStatusOrderBySubmittedAtAsc(
+                        viewerId, RequestStatus.PENDING);
+        return zahtjevi.stream()
+                .filter(request -> !request.getUser().getId().equals(viewerId))
                 .map(LeaveRequestRow::of)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<LeaveRequestRow> historyForManager(Long managerId) {
-        return leaveRequestRepository.findByUserManagerIdOrderBySubmittedAtDesc(managerId).stream()
+    public List<LeaveRequestRow> historyForManager(Long viewerId, Role viewerRole) {
+        List<LeaveRequest> zahtjevi = viewerRole == Role.ADMIN
+                ? leaveRequestRepository.findByStatusNotOrderBySubmittedAtDesc(RequestStatus.PENDING)
+                : leaveRequestRepository.findByUserManagerIdOrderBySubmittedAtDesc(viewerId);
+        return zahtjevi.stream()
                 .filter(request -> request.getStatus() != RequestStatus.PENDING)
+                .filter(request -> !request.getUser().getId().equals(viewerId))
                 .map(LeaveRequestRow::of)
                 .toList();
     }
 
     @Transactional
-    public void decide(Long managerId, Long requestId, RequestStatus decision, String decisionNote) {
+    public void decide(Long deciderId, Role deciderRole, Long requestId, RequestStatus decision,
+                       String decisionNote) {
         if (decision != RequestStatus.APPROVED && decision != RequestStatus.REJECTED) {
             throw new IllegalArgumentException("Nedozvoljena odluka: " + decision);
         }
-        LeaveRequest request = requirePendingRequest(managerId, requestId);
-        User manager = userRepository.findById(managerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Voditelj ne postoji: " + managerId));
+        LeaveRequest request = requirePendingRequest(deciderId, deciderRole, requestId);
+        User manager = userRepository.findById(deciderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Korisnik ne postoji: " + deciderId));
         request.setStatus(decision);
         request.setDecidedBy(manager);
         request.setDecidedAt(LocalDateTime.now());
@@ -71,11 +80,19 @@ public class LeaveApprovalService {
                         + " je " + outcome + "."));
     }
 
-    private LeaveRequest requirePendingRequest(Long managerId, Long requestId) {
+    private LeaveRequest requirePendingRequest(Long deciderId, Role deciderRole, Long requestId) {
         return leaveRequestRepository.findById(requestId)
                 .filter(request -> request.getStatus() == RequestStatus.PENDING)
-                .filter(request -> request.getUser().getManager() != null)
-                .filter(request -> request.getUser().getManager().getId().equals(managerId))
+                .filter(request -> !request.getUser().getId().equals(deciderId))
+                .filter(request -> mayDecide(deciderId, deciderRole, request))
                 .orElseThrow(() -> new ResourceNotFoundException("Zahtjev nije dostupan za odluku: " + requestId));
+    }
+
+    private boolean mayDecide(Long deciderId, Role deciderRole, LeaveRequest request) {
+        if (deciderRole == Role.ADMIN) {
+            return true;
+        }
+        User manager = request.getUser().getManager();
+        return manager != null && manager.getId().equals(deciderId);
     }
 }
