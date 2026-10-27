@@ -38,7 +38,8 @@ uvid u evidenciju poslanih obavijesti.
   Tijelovo izračunati algoritmom)
 - godišnji odmor (prema profilu, najmanje 20 dana) i plaćeni dopust (7 dana) imaju odvojene kvote
 - odsutnost se ne smije preklapati s postojećim zahtjevom, bolovanjem ni s unesenim satima
-- odluku o zahtjevu donosi isključivo neposredni voditelj podnositelja
+- o zahtjevu odlučuje neposredni voditelj podnositelja ili administrator; nitko ne odlučuje o
+  vlastitom zahtjevu, a zahtjev se ne može podnijeti ako ga nema tko odobriti
 - sustav mora imati barem jednog aktivnog administratora
 
 ## Pokretanje u razvoju
